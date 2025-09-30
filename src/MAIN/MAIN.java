@@ -5,6 +5,21 @@ import java.util.Scanner;
 
 public class MAIN {
 
+    private void viewCustomers() {
+        String votersQuery = "SELECT * FROM ";
+        String[] votersHeaders = {"ID", "Name", "Birthdate", "Email", "Status"};
+        String[] votersColumns = {"id", "name", "birthdate", "email", "status"};
+        config conf = new config();
+        conf.viewRecords(votersQuery, votersHeaders, votersColumns);
+    }
+    
+    private void viewCustomes() {
+        String votersQuery = "SELECT * FROM ";
+        String[] votersHeaders = {"ID", "Name", "Birthdate", "Email", "Status"};
+        String[] votersColumns = {"id", "name", "birthdate", "email", "status"};
+        config conf = new config();
+        conf.viewRecords(votersQuery, votersHeaders, votersColumns);
+    }
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
@@ -15,8 +30,8 @@ public class MAIN {
         System.out.println("======WELCOME TO MY SYSTEM======");
         System.out.println("-------------------------------");
         System.out.println("-----COSTUME RENTAL SYSTEM-----");
-        System.out.println("1. Add Customer ");
-        System.out.println("2. Add Costume Item ");
+        System.out.println("1. Manage Customer ");
+        System.out.println("2. Manage Costume Item ");
         System.out.println("3. Rental Record ");
 
         System.out.print("Enter Choice: ");
@@ -25,7 +40,16 @@ public class MAIN {
 
         switch (choice) {
             case 1:
-                System.out.println("----Input Customer Details----");
+                System.out.println("1. Add Customer");
+                System.out.println("2. View Customer");
+                System.out.println("3. Update Customer");
+                System.out.println("4. Delete Customer");
+                int c_choice = sc.nextInt();
+                sc.nextLine();
+                
+                switch(c_choice){
+                    case 1:
+                  System.out.println("----Input Customer Details----");
 
                 System.out.print("Enter Customer Name: ");
                 String c_name = sc.nextLine();
@@ -37,11 +61,35 @@ public class MAIN {
                 String c_email = sc.nextLine();
 
                 String sqlcustomer = "INSERT INTO Customer(c_name, c_contactNumber, c_email) VALUES (?, ?, ?)";
-                con.addRecord(sqlcustomer, c_name, c_number, c_email);
+                con.addRecord(sqlcustomer, c_name, c_number, c_email);   
+                      
+                break;
+                    case 2:
+                        viewCustomers();
+                        break;
+                        
+                    case 3:
+                        break;
+                    case 4:
+                        break;
+                }
+                
+               
                 break;
 
             case 2:
-                System.out.println("----Dress Available----");
+                System.out.println("1. Add Custome Item");
+                System.out.println("2. View Custome Item");
+                System.out.println("3. Update Custome Item");
+                System.out.println("4. Delete Custome Item");
+                
+                int item_choice = sc.nextInt();
+                
+                sc.nextLine();
+                
+                switch(item_choice){
+                    case 1:
+                          System.out.println("----Dress Available----");
                 System.out.println("---------Modern Outfits----------");
                 System.out.println("*Hip-Hop Streetwear*");
                 System.out.println("*Jazz Dance Sequin Outfit*");
@@ -125,6 +173,16 @@ public class MAIN {
                 
                 String sqlitem = "INSERT INTO Item(i_name, i_size, i_rental_Price, i_availability_status) VALUES (?, ?, ?, ?)";
                 con.addRecord(sqlitem, i_name, size, price, availability_status);
+                        break;
+                    case 2:
+                        viewCustomes();
+                        break;
+                    case 3:
+                        break;
+                    case 4:
+                        break;
+                }
+              
                 break;
 
             case 3:

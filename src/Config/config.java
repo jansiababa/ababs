@@ -184,5 +184,32 @@ public void deleteRecord(String sql, Object... values) {
         System.out.println("Error deleting record: " + e.getMessage());
     }
 }
+public java.util.List<java.util.Map<String, Object>> fetchRecords(String sqlQuery, Object... values) {
+    java.util.List<java.util.Map<String, Object>> records = new java.util.ArrayList<>();
 
+    try (Connection conn = this.connectDB();
+         PreparedStatement pstmt = conn.prepareStatement(sqlQuery)) {
+
+        for (int i = 0; i < values.length; i++) {
+            pstmt.setObject(i + 1, values[i]);
+        }
+
+        ResultSet rs = pstmt.executeQuery();
+        ResultSetMetaData metaData = rs.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+        while (rs.next()) {
+            java.util.Map<String, Object> row = new java.util.HashMap<>();
+            for (int i = 1; i <= columnCount; i++) {
+                row.put(metaData.getColumnName(i), rs.getObject(i));
+            }
+            records.add(row);
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error fetching records: " + e.getMessage());
+    }
+
+    return records;
+}
 }

@@ -1,0 +1,234 @@
+package MAIN;
+
+import Config.config;
+import static MAIN.MAIN.viewCostumes;
+import static MAIN.MAIN.viewUcr;
+import java.time.LocalDate;
+import java.util.Scanner;
+
+public class Staff {
+
+    Scanner sc = new Scanner(System.in);
+    config con = new config();
+
+    // ===== VALIDATION HELPERS =====
+    private int getValidInt(String msg) {
+        while (true) {
+            System.out.print(msg);
+            try {
+                return sc.nextInt();
+            } catch (Exception e) {
+                System.out.println("Invalid input! Numbers only.");
+                String nextLine = sc.nextLine();
+            }
+        }
+    }
+
+    private String getNonEmpty(String msg) {
+        sc.nextLine();
+        String input;
+        do {
+            System.out.print(msg);
+            input = sc.nextLine().trim();
+        } while (input.isEmpty());
+        return input;
+    }
+
+    private boolean idExists(String table, String column, int id) {
+        String sql = "SELECT * FROM " + table + " WHERE " + column + " = ?";
+        return !con.fetchRecords(sql, id).isEmpty();
+    }
+
+    // ===================================================
+    public void Staff() {
+
+        while (true) {
+            System.out.println("\n=== STAFF DASHBOARD ===");
+            System.out.println("1. Manage Costume");
+            System.out.println("2. Manage Rental");
+            System.out.println("3. Logout");
+
+            int item_choice = getValidInt("Enter choice: ");
+
+            switch (item_choice) {
+
+// ====================================================================
+//                          COSTUME MANAGEMENT
+// ====================================================================
+                case 1:
+                    System.out.println("\n1. View Costume Items");
+                    System.out.println("2. Update Costume Status");
+                    System.out.println("3. Delete Costume");
+                    System.out.println("4. Back");
+
+                    int choi = getValidInt("Enter choice: ");
+
+                    switch (choi) {
+
+                        case 1:
+                            viewCostumes();
+                            break;
+
+                        case 2:
+                            viewCostumes();
+                            int approve_id = getValidInt("Enter Item ID to approve/rent: ");
+
+                            if (!idExists("Item", "i_id", approve_id)) {
+                                System.out.println("Item ID not found!");
+                                break;
+                            }
+
+                            String checkPending = "SELECT * FROM Item WHERE i_id = ? AND i_availability_status = 'Pending'";
+                            var pending = (var) con.fetchRecords(checkPending, approve_id);
+
+                            if (pending.isEmpty()) {
+                                System.out.println("Item is not pending approval.");
+                            } else {
+                                String approveQuery = "UPDATE Item SET i_availability_status='Rented' WHERE i_id=?";
+                                con.updateRecord(approveQuery, approve_id);
+                                System.out.println("Item status updated to 'Rented'.");
+                            }
+                            break;
+
+                        case 3:
+                            viewCostumes();
+                            int delId = getValidInt("Enter Item ID to Delete: ");
+
+                            if (!idExists("Item", "i_id", delId)) {
+                                System.out.println("Item ID does not exist!");
+                                break;
+                            }
+
+                            String deleteItem = "DELETE FROM Item WHERE i_id=?";
+                            con.updateRecord(deleteItem, delId);
+
+                            System.out.println("Item deleted successfully!");
+                            break;
+
+                        case 4:
+                            break;
+
+                        default:
+                            System.out.println("Invalid choice!");
+                    }
+                    break;
+
+// ====================================================================
+//                             RENTAL MANAGEMENT
+// ====================================================================
+                case 2:
+                    System.out.println("\n1. Add Rental");
+                    System.out.println("2. View Rentals");
+                    System.out.println("3. Update Rental");
+                    System.out.println("4. Delete Rental");
+                    System.out.println("5. Back");
+
+                    int r_ch = getValidInt("Enter choice: ");
+
+                    switch (r_ch) {
+
+// ============ ADD RENTAL ============
+                        case 1:
+                            System.out.println("\n=== AVAILABLE RENTALS ===");
+                            viewUcr();
+
+                            int item_id = getValidInt("Enter Item ID: ");
+
+                            if (!idExists("Item", "i_id", item_id)) {
+                                System.out.println("Item not found!");
+                                break;
+                            }
+
+                            String getPrice = "SELECT i_price FROM Item WHERE i_id=?";
+                            var priceResult = (var) con.fetchRecords(getPrice, item_id);
+
+                            double price = Double.parseDouble(priceResult.get(0).get("i_price").toString());
+
+                            sc.nextLine();
+                            String rentDate = getNonEmpty("Enter Rental Date (YYYY-MM-DD): ");
+                            String returnDate = getNonEmpty("Enter Return Date (YYYY-MM-DD): ");
+
+                            try {
+                                LocalDate start = java.time.LocalDate.parse(rentDate);
+                                LocalDate end = java.time.LocalDate.parse(returnDate);
+                                long days = java.time.temporal.ChronoUnit.DAYS.between(start, end);
+
+                                if (days <= 0) {
+                                    System.out.println("Return date must be AFTER rental date!");
+                                    break;
+                                }
+
+                                double total = price * days;
+
+                                String insert = "INSERT INTO Rental(i_id, r_date, return_date, total_amount) VALUES(?,?,?,?)";
+                                con.updateRecord(insert, item_id, rentDate, returnDate, total);
+
+                                System.out.println("Rental added successfully!");
+                                System.out.println("Total Amount: ₱" + total);
+
+                            } catch (Exception e) {
+                                System.out.println("Invalid date format!");
+                            }
+                            break;
+
+// ============ VIEW RENTALS ============
+                        case 2:
+                            viewrentalRecord();
+                            break;
+
+// ============ UPDATE RENTAL ============
+                        case 3:
+                            int updateId = getValidInt("Enter Rental ID to update: ");
+
+                            if (!idExists("Rental", "r_id", updateId)) {
+                                System.out.println("Rental record does not exist!");
+                                break;
+                            }
+
+                            sc.nextLine();
+                            String newReturn = getNonEmpty("Enter new Return Date (YYYY-MM-DD): ");
+
+                            String updateRental = "UPDATE Rental SET return_date=? WHERE r_id=?";
+                            con.updateRecord(updateRental, newReturn, updateId);
+
+                            System.out.println("Rental updated successfully!");
+                            break;
+
+// ============ DELETE RENTAL ============
+                        case 4:
+                            int deleteRid = getValidInt("Enter Rental ID to delete: ");
+
+                            if (!idExists("Rental", "r_id", deleteRid)) {
+                                System.out.println("Rental ID does not exist!");
+                                break;
+                            }
+
+                            String deleteRental = "DELETE FROM Rental WHERE r_id=?";
+                            con.updateRecord(deleteRental, deleteRid);
+
+                            System.out.println("Rental deleted successfully!");
+                            break;
+
+                        case 5:
+                            break;
+
+                        default:
+                            System.out.println("Invalid choice!");
+                    }
+                    break;
+
+// ====================================================================
+                case 3:
+                    System.out.println("Logging out...");
+                    return;
+
+                default:
+                    System.out.println("Invalid choice!");
+            }
+        }
+    }
+
+    private void viewrentalRecord() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+}
